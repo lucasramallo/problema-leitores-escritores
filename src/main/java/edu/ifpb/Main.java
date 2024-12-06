@@ -1,35 +1,81 @@
 package edu.ifpb;
 
-import java.time.LocalTime;
-import java.util.concurrent.Semaphore;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Main {
-    private static final Semaphore semaforo = new Semaphore(1, true);
+    private int counter = 0;
+    private int ReadersInCriticalRegion = 0;  // counter de threads de leitura
+    private boolean isWriting = false;  // Flag que indica se uma thread de escrita está acessando o recurso
+    private static final Logger LOGGER = LogManager.getLogger(Main.class);
+
+    // Método de leitura (pode ser acessado por várias threads simultaneamente)
+    public void read() {
+        synchronized (this) {
+            LOGGER.info(Thread.currentThread().getName() + " Está na região crítica!");
+            ReadersInCriticalRegion++;  // Incrementa dentro do bloco sincronizado
+        }  // Incrementa dentro do bloco sincronizado
+
+        while (isWriting) {  // Espera enquanto houver uma thread de escrita acessando
+            LOGGER.warn("Aguardando Escrita");
+        }
+
+        // Simula o processo de leitura
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        LOGGER.info(Thread.currentThread().getName() + " leu o valor: " + counter);
+
+        synchronized (this) {
+            ReadersInCriticalRegion--;  // Decrementa o counter de threads de leitura
+            if (ReadersInCriticalRegion == 0) {
+                LOGGER.info("Não há leitores na zona região crítica");
+                notifyAll();  // Se não houver mais threads de leitura, notifica possíveis threads de escrita
+            }
+        }
+    }
+
+    // Método de escrita (somente uma thread pode acessar por vez)
+    public void write(int valor) {
+        synchronized (this) {
+            while (isWriting || ReadersInCriticalRegion > 0) {  // Espera se houver threads de leitura ou outra thread de escrita
+                LOGGER.warn(Thread.currentThread().getName() + " - Aguardando leitores deixarem a região crítica!");
+                try {
+                    wait();  // Aguarda se houver threads de leitura ou outra thread de escrita
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            isWriting = true;  // Define que uma thread de escrita está acessando
+        }
+
+        // Simula o processo de escrita
+        counter = valor;
+        LOGGER.info(Thread.currentThread().getName() + " escreveu o valor: " + counter);
+
+        synchronized (this) {
+            isWriting = false;  // Libera o acesso à escrita
+            notifyAll();  // Notifica todas as threads (de leitura e escrita) que o recurso foi liberado
+        }
+    }
 
     public static void main(String[] args) throws InterruptedException {
-        Runnable tarefa = () -> {
-            System.out.println(Thread.currentThread().getName() + " - " + LocalTime.now());
-            try {
-                System.out.println(Thread.currentThread().getName() + " tentando acessar o recurso...");
-                semaforo.acquire(); // Solicita uma permissão
-                System.out.println(Thread.currentThread().getName() + " obteve acesso ao recurso.");
-                Thread.sleep(2000); // Simula uso do recurso
-                System.out.println(Thread.currentThread().getName() + " liberando o recurso.");
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                semaforo.release(); // Libera a permissão
-            }
-        };
+        Main exemplo = new Main();
 
-        // Cria e inicia 3 threads
-        Thread t1 = new Thread(tarefa, "Thread-1");
-        Thread t2 = new Thread(tarefa, "Thread-2");
-        Thread t3 = new Thread(tarefa, "Thread-3");
+        Thread t1 = new Thread(exemplo::read, "Leitura-1");
+        Thread t4 = new Thread(() -> exemplo.write(42), "Escrita-1");
+        Thread t2 = new Thread(exemplo::read, "Leitura-2");
+        Thread t5 = new Thread(() -> exemplo.write(42), "Escrita-2");
+        Thread t3 = new Thread(exemplo::read, "Leitura-3");
+
 
         t1.start();
         t2.start();
         t3.start();
+        t4.start();
+        t5.start();
     }
 }
 
@@ -44,46 +90,50 @@ public class Main {
 
 
 //package edu.ifpb;
-//import java.time.LocalDate;
-//import java.time.LocalTime;
-//import java.util.concurrent.CountDownLatch;
+//import java.util.concurrent.locks.ReentrantLock;
 //
 //public class Main {
-//    private final CountDownLatch startLatch = new CountDownLatch(1); // Para liberar todas as threads ao mesmo tempo
-//    private final CountDownLatch doneLatch = new CountDownLatch(2);  // Para esperar ambas as threads terminarem
+//    private final ReentrantLock lock = new ReentrantLock();
 //
-//    public void metodoTestado() {
-//        try {
-//            // Aguarda a liberação para começar
-//            startLatch.await();
-//            System.out.println(Thread.currentThread().getName() + " executando o método.");
-//            System.out.println(LocalTime.now());
-//            // Simula algum processamento
-//            Thread.sleep(500);
-//        } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        } finally {
-//            doneLatch.countDown(); // Indica que a thread terminou
+//    public void incrementar() {
+//        String threadName = Thread.currentThread().getName();
+//
+//        System.out.println(threadName + " Solicitou acesso em: " + System.nanoTime());
+//
+//        // Se a thread for "Thread-A", ela pode acessar sem aguardar o lock
+//        if (threadName.equals("Thread-A")) {
+//            System.out.println(threadName + " Acessou sem esperar pelo lock");
+//            try {
+//                Thread.sleep(4000); // Simulando a operação
+//                System.out.println(threadName + " Saiu");
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
+//        } else {
+//            lock.lock(); // Bloqueia as outras threads normalmente
+//            try {
+//                Thread.sleep(4000);
+//                System.out.println(threadName + " Acessou");
+//                System.out.println("Em threads em lista de espera: " + lock.getQueueLength());
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            } finally {
+//                System.out.println(threadName + " Saiu");
+//                lock.unlock(); // Libera o lock
+//            }
 //        }
 //    }
 //
 //    public static void main(String[] args) throws InterruptedException {
-//        Main teste = new Main();
+//        Main exemplo = new Main();
 //
-//        // Cria duas threads que chamarão o método
-//        Thread t1 = new Thread(teste::metodoTestado, "Thread-1");
-//        Thread t2 = new Thread(teste::metodoTestado, "Thread-2");
+//        // Cria três threads, com a "Thread-A" sendo a que pode acessar sem bloquear
+//        Thread t1 = new Thread(exemplo::incrementar, "Thread-A");
+//        Thread t2 = new Thread(exemplo::incrementar, "Thread-B");
+//        Thread t3 = new Thread(exemplo::incrementar, "Thread-B");
 //
 //        t1.start();
 //        t2.start();
-//
-//        // Libera todas as threads para começar
-//        System.out.println("Liberando threads...");
-//        teste.startLatch.countDown();
-//
-//        // Aguarda todas as threads terminarem
-//        teste.doneLatch.await();
-//
-//        System.out.println("Todas as threads concluíram.");
+//        t3.start();
 //    }
 //}
