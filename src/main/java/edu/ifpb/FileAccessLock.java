@@ -3,11 +3,17 @@ package edu.ifpb;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
+
 public class FileAccessLock {
-    private int file = 0;
+    private FileManager fileManager;
     private int ReadersInCriticalRegion = 0;
     private boolean isWriting = false;
     private static final Logger LOGGER = LogManager.getLogger(FileAccessLock.class);
+
+    public FileAccessLock() {
+        this.fileManager = new FileManager();
+    }
 
     /**
      * Realiza a operação de leitura no recurso compartilhado.
@@ -15,13 +21,13 @@ public class FileAccessLock {
      * Após a leitura, o número de leitores ativos é atualizado e, se não houver mais leitores,
      * notifica as threads de escrita.
      */
-    public void read() {
+    public String read() {
         synchronized (this) {
             /*
              O synchronized garante que esse trecho será executado por uma thread por vez.
              Isso assegura que o incremento do contador ReadersInCriticalRegion seja feito de forma atômica, evitando condições de corrida.
             */
-            LOGGER.info(Thread.currentThread().getName() + " Está na região crítica!");
+            LOGGER.info(Thread.currentThread().getName() + " está na região crítica!");
 
             // Incrementa o número de threads de leitura na região crítica
             ReadersInCriticalRegion++;
@@ -31,13 +37,8 @@ public class FileAccessLock {
             LOGGER.warn("Aguardando Escrita");
         }
 
-        // Simula o processo de leitura
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        LOGGER.info(Thread.currentThread().getName() + " leu o valor: " + file);
+        String data = fileManager.readFromFile();
+        LOGGER.info(Thread.currentThread().getName() + " leu o valor: \n" + data);
 
         synchronized (this) {
             ReadersInCriticalRegion--;
@@ -46,6 +47,8 @@ public class FileAccessLock {
                 notifyAll();  // Se não houver mais threads de leitura, notifica possíveis threads de escrita
             }
         }
+
+        return data;
     }
 
     /**
@@ -53,7 +56,7 @@ public class FileAccessLock {
      * A thread de escrita aguarda enquanto houver leitores ou outra thread de escrita acessando o recurso.
      * Após a escrita, o recurso é liberado e todas as threads são notificadas.
      */
-    public void write(int valueToWrite) {
+    public void write(String valueToWrite) {
         synchronized (this) {
             while (isWriting || ReadersInCriticalRegion > 0) {
                 LOGGER.warn(Thread.currentThread().getName() + " - Aguardando leitores/escritores deixarem a região crítica!");
@@ -71,8 +74,8 @@ public class FileAccessLock {
         }
 
         // Simulaçãp do processo de escrita
-        file = valueToWrite;
-        LOGGER.info(Thread.currentThread().getName() + " escreveu o valor: " + file);
+        this.fileManager.writeToFile(valueToWrite);
+        LOGGER.info(Thread.currentThread().getName() + " escreveu o valor: " + valueToWrite);
 
         synchronized (this) {
             isWriting = false;
@@ -85,11 +88,24 @@ public class FileAccessLock {
     public static void main(String[] args) throws InterruptedException {
         FileAccessLock fileAccessLock = new FileAccessLock();
 
-        Thread t1 = new Thread(fileAccessLock::read, "Leitura-1");
-        Thread t4 = new Thread(() -> fileAccessLock.write(42), "Escrita-1");
-        Thread t2 = new Thread(fileAccessLock::read, "Leitura-2");
-        Thread t5 = new Thread(() -> fileAccessLock.write(42), "Escrita-2");
-        Thread t3 = new Thread(fileAccessLock::read, "Leitura-3");
+        Thread t1 = new Thread(() -> {
+            String fileContent = fileAccessLock.read();
+
+
+        }, "Leitura-1");
+
+        Thread t4 = new Thread(() -> fileAccessLock.write("Linha 2 do arquivo."), "Escrita-1");
+
+        Thread t2 = new Thread(() -> {
+            String fileContent = fileAccessLock.read();
+
+        }, "Leitura-2");
+
+        Thread t5 = new Thread(() -> fileAccessLock.write("Linha 3 do arquivo."), "Escrita-2");
+        Thread t3 = new Thread(() -> {
+            String fileContent = fileAccessLock.read();
+
+        }, "Leitura-3");
 
 
         t1.start();

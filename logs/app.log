@@ -1,14 +1,43 @@
-22:41:54:4154 - Leitura-1 Está na região crítica!
-22:41:54:4154 - Escrita-2 - Aguardando leitores/escritores deixarem a região crítica!
-22:41:54:4154 - Escrita-1 - Aguardando leitores/escritores deixarem a região crítica!
-22:41:54:4154 - Leitura-3 Está na região crítica!
-22:41:54:4154 - Leitura-2 Está na região crítica!
-22:41:56:4156 - Leitura-3 leu o valor: 0
-22:41:56:4156 - Leitura-1 leu o valor: 0
-22:41:56:4156 - Leitura-2 leu o valor: 0
-22:41:56:4156 - Não há leitores na zona região crítica
-22:41:56:4156 - Escrita-2 Está na região crítica!
-22:41:56:4156 - Escrita-1 - Aguardando leitores/escritores deixarem a região crítica!
-22:41:56:4156 - Escrita-2 escreveu o valor: 42
-22:41:56:4156 - Escrita-1 Está na região crítica!
-22:41:56:4156 - Escrita-1 escreveu o valor: 42
+23:13:29:1329 - Leitura-1 está na região crítica!
+23:13:29:1329 - Escrita-2 - Aguardando leitores/escritores deixarem a região crítica!
+23:13:29:1329 - Leitura-1 leu o valor: 
+Linha 1.
+
+23:13:29:1329 - Escrita-1 - Aguardando leitores/escritores deixarem a região crítica!
+23:13:29:1329 - Leitura-3 está na região crítica!
+23:13:29:1329 - Leitura-3 leu o valor: 
+Linha 1.
+
+23:13:29:1329 - Leitura-2 está na região crítica!
+23:13:29:1329 - Leitura-2 leu o valor: 
+Linha 1.
+
+23:13:29:1329 - Não há leitores na região crítica
+23:13:29:1329 - Escrita-2 Está na região crítica!
+23:13:29:1329 - Escrita-1 - Aguardando leitores/escritores deixarem a região crítica!
+23:13:29:1329 - Escrita-2 escreveu o valor: Linha 3 do arquivo.
+23:13:29:1329 - Escrita-1 Está na região crítica!
+23:13:29:1329 - Escrita-1 escreveu o valor: Linha 2 do arquivo.
+23:14:54:1454 - Leitura-1 está na região crítica!
+23:14:54:1454 - Escrita-2 - Aguardando leitores/escritores deixarem a região crítica!
+23:14:54:1454 - Leitura-1 leu o valor: 
+Linha 1.
+
+
+23:14:54:1454 - Escrita-1 - Aguardando leitores/escritores deixarem a região crítica!
+23:14:54:1454 - Leitura-3 está na região crítica!
+23:14:54:1454 - Leitura-3 leu o valor: 
+Linha 1.
+
+
+23:14:54:1454 - Leitura-2 está na região crítica!
+23:14:54:1454 - Leitura-2 leu o valor: 
+Linha 1.
+
+
+23:14:54:1454 - Não há leitores na região crítica
+23:14:54:1454 - Escrita-2 Está na região crítica!
+23:14:54:1454 - Escrita-1 - Aguardando leitores/escritores deixarem a região crítica!
+23:14:54:1454 - Escrita-2 escreveu o valor: Linha 3 do arquivo.
+23:14:54:1454 - Escrita-1 Está na região crítica!
+23:14:54:1454 - Escrita-1 escreveu o valor: Linha 2 do arquivo.
