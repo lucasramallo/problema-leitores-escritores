@@ -13,7 +13,7 @@ public class FileManager {
      * Escreve um valor em uma nova linha do arquivo.
      * @param value O valor a ser escrito no arquivo.
      */
-    public synchronized void writeToFile(String value) {
+    public void writeToFile(String value) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
             writer.write(value);
             writer.newLine();
@@ -27,7 +27,7 @@ public class FileManager {
      * Lê todas as linhas do arquivo e retorna como uma lista de strings.
      * @return Uma lista contendo todas as linhas do arquivo.
      */
-    public synchronized String readFromFile() {
+    public String readFromFile() {
         StringBuilder content = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
